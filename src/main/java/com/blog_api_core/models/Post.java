@@ -15,7 +15,7 @@ public class Post {
     private String title;
     @NotBlank(message = "Content can not be blank")
     private String content;
-
+    private String imgUrl;
     @OneToMany(mappedBy = "post")
     @JsonIgnore
     private List<Comment> comments;
@@ -73,5 +73,13 @@ public class Post {
 
     public void setTopics(List<Topic> topics) {
         this.topics = topics;
+    }
+
+    public String getImgUrl() {
+        return imgUrl;
+    }
+
+    public void setImgUrl(String imgUrl) {
+        this.imgUrl = imgUrl;
     }
 }

@@ -5,13 +5,13 @@ import com.blog_api_core.models.Topic;
 import com.blog_api_core.payload.PostRequest;
 import com.blog_api_core.services.PostService;
 import com.blog_api_core.services.TopicService;
+import com.blog_api_core.utils.S3FileStorageUtils;
 import jakarta.validation.Valid;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.*;
 
@@ -20,16 +20,20 @@ import java.util.*;
 public class PostController {
     private final PostService postService;
     private final TopicService topicService;
+    private final S3FileStorageUtils s3FileStorageUtils;
 
-    public PostController(PostService postService, TopicService topicService) {
+    public PostController(PostService postService, TopicService topicService, S3FileStorageUtils s3FileStorageUtils) {
         this.postService = postService;
         this.topicService = topicService;
+        this.s3FileStorageUtils = s3FileStorageUtils;
     }
 
-    @PostMapping("/add-post")
-    public ResponseEntity<Map<String, Object>> addPost(@Valid @RequestBody PostRequest postRequest) {
-        Post post = postRequest.getPost();
-        List<Topic> topics = postRequest.getTopics();
+    @PostMapping(value="/add-post", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Map<String, Object>> addPost(
+            @RequestPart("post") @Valid Post post,
+            @RequestPart("image") MultipartFile file) {
+
+        List<Topic> topics = post.getTopics();
 //        check if topics already exist or create new ones
         List<Topic> existingTopics = new ArrayList<>();
         // Link each topic to the post
@@ -48,6 +52,12 @@ public class PostController {
 //                topic.setPost(post); // Set the post_id in each topic (ManyToOne relation)
             }
             post.setTopics(existingTopics);
+        }
+
+//        upload the post image too
+        if(file != null && !file.isEmpty()) {
+            String filePath = s3FileStorageUtils.uploadPostImage(file);
+            post.setImgUrl(filePath);
         }
 
         Post savedPost = postService.savePost(post);
