@@ -33,6 +33,7 @@ public class CommentController {
     public ResponseEntity<Map<String, Object>> getComments(@PathVariable Long post_id) {
         Map<String, Object> response = new LinkedHashMap<>();
         List<Comment> comments = commentService.findAllCommentsForPost(post_id);
+
         response.put("status", true);
         response.put("comments", comments);
         return ResponseEntity.ok(response);

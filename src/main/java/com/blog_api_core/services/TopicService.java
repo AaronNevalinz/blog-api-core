@@ -6,6 +6,8 @@ import com.blog_api_core.models.Topic;
 import com.blog_api_core.repository.TopicRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 public class TopicService {
     private final TopicRepository topicRepository;
@@ -15,5 +17,8 @@ public class TopicService {
 
     public Topic saveTopic(Topic topic) {
         return topicRepository.save(topic);
+    }
+    public Optional<Topic> getTopicByName(String name) {
+        return topicRepository.findByName(name);
     }
 }

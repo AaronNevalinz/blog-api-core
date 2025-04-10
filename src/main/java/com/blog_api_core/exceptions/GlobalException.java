@@ -18,6 +18,7 @@ public class GlobalException {
         ex.getBindingResult().getFieldErrors().forEach(error -> {
             errors.put(error.getField(), error.getDefaultMessage());
         });
+
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("status", false);
         response.put("errors", errors);

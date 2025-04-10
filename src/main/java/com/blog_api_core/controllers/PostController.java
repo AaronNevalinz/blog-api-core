@@ -13,10 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Controller
 @RequestMapping("/blog")
@@ -29,41 +26,44 @@ public class PostController {
         this.topicService = topicService;
     }
 
-
     @PostMapping("/add-post")
     public ResponseEntity<Map<String, Object>> addPost(@Valid @RequestBody PostRequest postRequest) {
         Post post = postRequest.getPost();
         List<Topic> topics = postRequest.getTopics();
-
-
+//        check if topics already exist or create new ones
+        List<Topic> existingTopics = new ArrayList<>();
         // Link each topic to the post
         if(topics != null && !topics.isEmpty()) {
             for (Topic topic : topics) {
-                topic.setPost(post); // Set the post_id in each topic (ManyToOne relation)
+//                checking if topic exists by name
+                Optional<Topic> existingTopic = topicService.getTopicByName(topic.getName());
+
+                if(existingTopic.isPresent()) {
+                    existingTopics.add(existingTopic.get());
+                }else{
+                    Topic newTopic = new Topic();
+                    newTopic.setName(topic.getName());
+                    existingTopics.add(topicService.saveTopic(newTopic));
+                }
+//                topic.setPost(post); // Set the post_id in each topic (ManyToOne relation)
             }
-            post.setTopics(topics);
+            post.setTopics(existingTopics);
         }
 
         Post savedPost = postService.savePost(post);
+
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("status", "true");
         response.put("result", savedPost);
 
         return ResponseEntity.ok(response);
-
-
-//        Post savedPost = postService.savePost(post);
-//        post.setTopics(topics);
-//        Map<String, Object> response = new LinkedHashMap<>();
-//        response.put("status", "true");
-//        response.put("result", savedPost);
-//        return ResponseEntity.ok(response);
     }
     
     @GetMapping("/posts")
     public ResponseEntity<Map<String, Object>> getAllPosts(){
         Map<String, Object> response = new LinkedHashMap<>();
         List<Post> posts = postService.getAllPosts();
+
         response.put("status", true);
         response.put("result", posts);
         return ResponseEntity.ok(response);
