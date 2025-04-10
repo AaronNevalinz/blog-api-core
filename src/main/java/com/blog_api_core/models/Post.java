@@ -19,6 +19,10 @@ public class Post {
     @OneToMany(mappedBy = "post")
     @JsonIgnore
     private List<Comment> comments;
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    @JsonIgnore
+    private User user;
 
     @ManyToMany(cascade = CascadeType.ALL)
     @JoinTable(
@@ -81,5 +85,13 @@ public class Post {
 
     public void setImgUrl(String imgUrl) {
         this.imgUrl = imgUrl;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 }

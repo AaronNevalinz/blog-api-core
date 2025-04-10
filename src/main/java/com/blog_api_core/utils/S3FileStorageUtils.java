@@ -18,7 +18,7 @@ public class S3FileStorageUtils {
 
     public String uploadPostImage(MultipartFile file) {
         try{
-            String fileName = "/blog-api-core/post-images" + file.getOriginalFilename();
+            String fileName = "/blog-api-core/post-images/" + file.getOriginalFilename();
             s3Client.putObject(bucketName, fileName, file.getInputStream(), null);
             return s3Client.getUrl(bucketName, fileName).toString();
         }catch (IOException e){

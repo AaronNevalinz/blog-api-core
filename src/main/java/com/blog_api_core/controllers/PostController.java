@@ -2,7 +2,6 @@ package com.blog_api_core.controllers;
 
 import com.blog_api_core.models.Post;
 import com.blog_api_core.models.Topic;
-import com.blog_api_core.payload.PostRequest;
 import com.blog_api_core.services.PostService;
 import com.blog_api_core.services.TopicService;
 import com.blog_api_core.utils.S3FileStorageUtils;
@@ -78,4 +77,6 @@ public class PostController {
         response.put("result", posts);
         return ResponseEntity.ok(response);
     }
+
+
 }
