@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 
 import java.util.List;
+import java.util.Set;
 
 @Entity
 public class Post {
@@ -14,6 +15,7 @@ public class Post {
     @NotBlank(message = "Title can not be blank")
     private String title;
     @NotBlank(message = "Content can not be blank")
+    @Column(columnDefinition = "TEXT")
     private String content;
     private String imgUrl;
     @OneToMany(mappedBy = "post")
@@ -31,6 +33,9 @@ public class Post {
             inverseJoinColumns = @JoinColumn(name = "topic_id")
     )
     private List<Topic> topics;
+
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL)
+    private Set<Like> likes;
 
     public Post() {}
 
@@ -58,6 +63,7 @@ public class Post {
     public String getContent() {
         return content;
     }
+
 
     public void setContent(String content) {
         this.content = content;
@@ -93,5 +99,13 @@ public class Post {
 
     public void setUser(User user) {
         this.user = user;
+    }
+
+    public Set<Like> getLikes() {
+        return likes;
+    }
+
+    public void setLikes(Set<Like> likes) {
+        this.likes = likes;
     }
 }

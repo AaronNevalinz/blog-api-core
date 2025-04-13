@@ -25,4 +25,11 @@ public class GlobalException {
 
         return ResponseEntity.ok(response);
     }
+    @ExceptionHandler(NotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleNotFoundException(NotFoundException ex) {
+        Map<String, Object> errors = new HashMap<>();
+        errors.put("status", false);
+        errors.put("error", ex.getMessage());
+        return ResponseEntity.ok(errors);
+    }
 }

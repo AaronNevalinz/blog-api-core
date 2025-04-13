@@ -21,6 +21,7 @@ public class User {
     @OneToMany(mappedBy = "user")
     @JsonIgnore
     private List<Post> posts;
+
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable( name = "user_roles",
             joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
@@ -75,4 +76,12 @@ public class User {
     public void setRoles(Set<Role> roles) {
         this.roles = roles;
     }
+
+//    public Set<Post> getLikes() {
+//        return likes;
+//    }
+//
+//    public void setLikes(Set<Post> likes) {
+//        this.likes = likes;
+//    }
 }
