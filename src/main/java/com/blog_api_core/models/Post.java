@@ -37,6 +37,9 @@ public class Post {
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL)
     private Set<Like> likes;
 
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL)
+    private Set<BookMark> bookMarks;
+
     public Post() {}
 
     public Post(String title, String content) {

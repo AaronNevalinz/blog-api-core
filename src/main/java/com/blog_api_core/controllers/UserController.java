@@ -39,4 +39,16 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
 
+    @PostMapping("/bookmark")
+    public ResponseEntity<Map<String, Object>> bookmark() {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        Optional<User> user = userRepository.findByUsername(username);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", "success");
+        response.put("user", user.get());
+
+        return ResponseEntity.ok(response);
+    }
+
 }

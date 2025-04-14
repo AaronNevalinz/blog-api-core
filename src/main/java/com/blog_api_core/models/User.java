@@ -15,8 +15,11 @@ public class User {
     private String username;
 //    @JsonIgnore
     private String password;
+
     @OneToOne(mappedBy = "user")
+    @JsonIgnore
     private Profile profile;
+
     @OneToMany(mappedBy = "user")
     @JsonIgnore
     private List<Post> posts;
@@ -29,8 +32,38 @@ public class User {
     )
     private Set<Role> roles;
 
+    private boolean is_deleted = false;
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    public boolean isIs_deleted() {
+        return is_deleted;
+    }
+
+    public void setIs_deleted(boolean is_deleted) {
+        this.is_deleted = is_deleted;
+    }
 
     public Long getId() {
         return id;

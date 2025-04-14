@@ -1,11 +1,9 @@
 package com.blog_api_core.controllers;
 
 import com.blog_api_core.exceptions.NotFoundException;
-import com.blog_api_core.models.Like;
-import com.blog_api_core.models.Post;
-import com.blog_api_core.models.Topic;
-import com.blog_api_core.models.User;
+import com.blog_api_core.models.*;
 import com.blog_api_core.payload.PostSummary;
+import com.blog_api_core.repository.BookMarkRepository;
 import com.blog_api_core.repository.LikeRepository;
 import com.blog_api_core.repository.UserRepository;
 import com.blog_api_core.services.PostService;
@@ -30,13 +28,15 @@ public class PostController {
     private final S3FileStorageUtils s3FileStorageUtils;
     private final UserRepository userRepository;
     private final LikeRepository likeRepository;
+    private final BookMarkRepository bookMarkRepository;
 
-    public PostController(PostService postService, TopicService topicService, S3FileStorageUtils s3FileStorageUtils, UserRepository userRepository, LikeRepository likeRepository) {
+    public PostController(PostService postService, TopicService topicService, S3FileStorageUtils s3FileStorageUtils, UserRepository userRepository, LikeRepository likeRepository, BookMarkRepository bookMarkRepository) {
         this.postService = postService;
         this.topicService = topicService;
         this.s3FileStorageUtils = s3FileStorageUtils;
         this.userRepository = userRepository;
         this.likeRepository = likeRepository;
+        this.bookMarkRepository = bookMarkRepository;
     }
 
 
@@ -144,6 +144,32 @@ public class PostController {
         likeRepository.save(like);
         response.put("status",true);
         response.put("message","liked");
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/bookmark/{post_id}")
+    public ResponseEntity<Map<String, Object>> toggleBookMark(@PathVariable Long post_id){
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new NotFoundException("Please Log in"));
+        Post post = postService.getPostById(post_id);
+
+        Map<String, Object> response = new LinkedHashMap<>();
+
+        Optional<BookMark> alreadyBookedMarked = bookMarkRepository.findByUserAndPost(user, post);
+        if(alreadyBookedMarked.isPresent()) {
+            bookMarkRepository.delete(alreadyBookedMarked.get());
+            response.put("status",false);
+            response.put("message","Removed from bookmarks");
+            return ResponseEntity.ok(response);
+        }
+
+        BookMark bookMark = new BookMark();
+        bookMark.setUser(user);
+        bookMark.setPost(post);
+        bookMarkRepository.save(bookMark);
+        response.put("status",true);
+        response.put("message","Bookmarked");
         return ResponseEntity.ok(response);
     }
 }
