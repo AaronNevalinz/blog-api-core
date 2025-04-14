@@ -28,4 +28,16 @@ public class S3FileStorageUtils {
             return "Error occurred while uploading image to S3. " + e.getMessage();
         }
     }
+
+    public String uploadProfilePic(MultipartFile file) {
+        try{
+            String fileName = "blog-api-core/profile-pics/" + file.getOriginalFilename();
+            ObjectMetadata metadata = new ObjectMetadata();
+            metadata.setContentLength(file.getSize());
+            s3Client.putObject(bucketName, fileName, file.getInputStream(), metadata);
+            return s3Client.getUrl(bucketName, fileName).toString();
+        }catch (IOException e){
+            return "Error occurred while uploading image to S3. " + e.getMessage();
+        }
+    }
 }

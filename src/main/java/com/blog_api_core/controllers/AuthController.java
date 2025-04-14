@@ -1,18 +1,16 @@
 package com.blog_api_core.controllers;
 
 import com.blog_api_core.models.User;
+import com.blog_api_core.payload.LoginDto;
 import com.blog_api_core.repository.UserRepository;
 import com.blog_api_core.services.AuthService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 
-@Controller
+@RestController
 @CrossOrigin
 @RequestMapping("api/auth")
 public class AuthController {
@@ -35,10 +33,12 @@ public class AuthController {
     }
 
     @PostMapping(value = "/login")
-    public ResponseEntity<Map<String, Object>> loginUser(@RequestBody User user) {
-        String token = authService.login(user);
+    public ResponseEntity<Map<String, Object>> loginUser(@RequestBody LoginDto user) {
+
         User databaseUser = userRepository.findByUsername(user.getUsername())
                 .orElseThrow(() -> new RuntimeException("User not found"));
+
+        String token = authService.login(user);
 
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("status", true);
@@ -46,4 +46,6 @@ public class AuthController {
         response.put("token", token);
         return ResponseEntity.ok(response);
     }
+
+
 }

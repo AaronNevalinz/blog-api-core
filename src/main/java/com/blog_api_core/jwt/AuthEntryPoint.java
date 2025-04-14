@@ -20,11 +20,11 @@ public class AuthEntryPoint implements AuthenticationEntryPoint {
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException, ServletException {
         response.setContentType("application/json");
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-//
-//        Map<String, Object> responseMap = new LinkedHashMap<>();
-//        responseMap.put("status", false);
-//        responseMap.put("message", "Invalid username or password");
-//        ObjectMapper objectMapper = new ObjectMapper();
-//        response.getWriter().write(objectMapper.writeValueAsString(responseMap));
+
+        Map<String, Object> responseMap = new LinkedHashMap<>();
+        responseMap.put("status", false);
+        responseMap.put("message", "Invalid Credentials");
+        ObjectMapper objectMapper = new ObjectMapper();
+        response.getWriter().write(objectMapper.writeValueAsString(responseMap));
     }
 }

@@ -3,6 +3,7 @@ package com.blog_api_core.services;
 import com.blog_api_core.exceptions.NotFoundException;
 import com.blog_api_core.models.Role;
 import com.blog_api_core.models.User;
+import com.blog_api_core.payload.LoginDto;
 import com.blog_api_core.repository.RoleRepository;
 import com.blog_api_core.repository.UserRepository;
 import com.blog_api_core.utils.JwtUtils;
@@ -52,7 +53,7 @@ public class AuthService {
         return userRepository.save(user);
     }
 
-    public String login(User user) {
+    public String login(LoginDto user) {
         Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword()));
         SecurityContextHolder.getContext().setAuthentication(authentication);
         return jwtUtils.generateTokenFromUser(user.getUsername());

@@ -13,21 +13,24 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String username;
+//    @JsonIgnore
     private String password;
-    @OneToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "profile_id")
-    @JsonIgnore
+    @OneToOne(mappedBy = "user")
     private Profile profile;
     @OneToMany(mappedBy = "user")
     @JsonIgnore
     private List<Post> posts;
 
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @JsonIgnore
     @JoinTable( name = "user_roles",
             joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id")
     )
     private Set<Role> roles;
+
+
+
 
     public Long getId() {
         return id;
@@ -77,11 +80,5 @@ public class User {
         this.roles = roles;
     }
 
-//    public Set<Post> getLikes() {
-//        return likes;
-//    }
-//
-//    public void setLikes(Set<Post> likes) {
-//        this.likes = likes;
-//    }
+
 }

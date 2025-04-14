@@ -1,6 +1,5 @@
 package com.blog_api_core.controllers;
 
-import ch.qos.logback.core.model.Model;
 import com.blog_api_core.exceptions.NotFoundException;
 import com.blog_api_core.models.Like;
 import com.blog_api_core.models.Post;
@@ -16,16 +15,13 @@ import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.*;
 
-@Controller
+@RestController
 @CrossOrigin
 @RequestMapping("/blog")
 public class PostController {
@@ -42,26 +38,8 @@ public class PostController {
         this.userRepository = userRepository;
         this.likeRepository = likeRepository;
     }
-    @CrossOrigin(origins = "http://localhost:5173")
-    @GetMapping("/current-user")
-    public ResponseEntity<Map<String, Object>> getCurrentUser() {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        Optional<User> user = userRepository.findByUsername(username);
 
-        Map<String, Object> response = new LinkedHashMap<>();
-        if (user.isPresent()) {
-            response.put("status", true);
-            response.put("user", user.get());
-        } else {
-            response.put("status", false);
-            response.put("message", "User not found");
-            response.put("username", username);
-        }
 
-        return ResponseEntity.ok(response);
-    }
-
-    @CrossOrigin(origins = "http://localhost:5173")
     @PostMapping(value="/add-post", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Map<String, Object>> addPost(
             @RequestPart("post") @Valid Post post,
@@ -75,7 +53,7 @@ public class PostController {
         // Link each topic to the post
         if(topics != null && !topics.isEmpty()) {
             for (Topic topic : topics) {
-//                checking if topic exists by name
+//              Checking if topic exists by name
                 Optional<Topic> existingTopic = topicService.getTopicByName(topic.getName());
 
                 if(existingTopic.isPresent()) {
