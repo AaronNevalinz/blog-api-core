@@ -119,6 +119,20 @@ public class PostController {
         return ResponseEntity.ok(summaries);
     }
 
+    @GetMapping("/post/{post_id}")
+    public ResponseEntity<Map<String, Object>> getPostById(@PathVariable Long post_id){
+        Map<String, Object> response = new LinkedHashMap<>();
+        Post post = postService.getPostById(post_id);
+
+        if(post == null) {
+            throw new NotFoundException("Post not found");
+        }
+
+        response.put("status", true);
+        response.put("result", post);
+        return ResponseEntity.ok(response);
+    }
+
 
 
     @PostMapping("/like/{post_id}")
@@ -172,4 +186,16 @@ public class PostController {
         response.put("message","Bookmarked");
         return ResponseEntity.ok(response);
     }
+
+//    searching
+//    @PostMapping("search")
+//    public ResponseEntity<Map<String, Object>> searchPosts(@RequestBody String searchParams) {
+//        Map<String, Object> response = new LinkedHashMap<>();
+//        String searchTerm = searchParams.get("searchTerm");
+//        List<Post> posts = postService.searchTopic(searchTerm);
+
+//        response.put("status", true);
+//        response.put("result", posts);
+//        return ResponseEntity.ok(response);
+//    }
 }

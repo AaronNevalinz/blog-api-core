@@ -47,7 +47,7 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.cors(Customizer.withDefaults());
+        http.cors(Customizer.withDefaults()); // plug in cors config
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(request ->

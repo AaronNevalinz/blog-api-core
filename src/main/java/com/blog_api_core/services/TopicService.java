@@ -6,6 +6,7 @@ import com.blog_api_core.models.Topic;
 import com.blog_api_core.repository.TopicRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -20,5 +21,9 @@ public class TopicService {
     }
     public Optional<Topic> getTopicByName(String name) {
         return topicRepository.findByName(name);
+    }
+
+    public List<Topic> getAllTopics() {
+        return topicRepository.findAll();
     }
 }
