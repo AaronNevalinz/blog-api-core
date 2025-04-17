@@ -2,27 +2,25 @@ package com.blog_api_core.controllers;
 
 import com.blog_api_core.models.Profile;
 import com.blog_api_core.models.User;
-import com.blog_api_core.repository.ProfileRepository;
 import com.blog_api_core.repository.UserRepository;
-import jakarta.persistence.Entity;
-import org.springframework.http.RequestEntity;
+import com.blog_api_core.services.ProfileService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
-@Controller
+@RestController
 public class UserController {
     private final UserRepository userRepository;
-    private final ProfileRepository profileRepository;
+    private final ProfileService profileService;
 
-    public UserController(UserRepository userRepository, ProfileRepository profileRepository) {
+    public UserController(UserRepository userRepository, ProfileService profileService) {
         this.userRepository = userRepository;
-        this.profileRepository = profileRepository;
+        this.profileService = profileService;
     }
 
     @PostMapping("/update-profile")
@@ -51,4 +49,45 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
 
+    @PostMapping("/delete-user")
+    public ResponseEntity<Map<String, Object>> deleteUser() {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        Optional<User> user = userRepository.findByUsername(username);
+
+        user.get().setIs_deleted(true);
+        userRepository.save(user.get());
+
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("status", "success");
+        response.put("result", user);
+
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/get-users")
+    public ResponseEntity<Map<String, Object>> getUsers() {
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("status", "success");
+        response.put("result", userRepository.findAllActive());
+
+        return ResponseEntity.ok(response);
+    }
+    @GetMapping("/get-inactive-users")
+    public ResponseEntity<Map<String, Object>> getInactiveUsers() {
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("status", "success");
+        response.put("result", userRepository.findAllInActive());
+
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<Map<String, Object>> searchUser(@RequestParam(required = false) String searchTerm) {
+        Map<String, Object> response = new LinkedHashMap<>();
+        List<User> users = profileService.searchUser(searchTerm);
+        response.put("status", "success");
+        response.put("result", users);
+
+        return ResponseEntity.ok(response);
+    }
 }

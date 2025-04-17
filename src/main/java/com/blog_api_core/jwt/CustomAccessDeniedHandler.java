@@ -23,6 +23,8 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
         Map<String, Object> responseMap = new LinkedHashMap<>();
         responseMap.put("status", false);
         responseMap.put("message", "You Don't have permission to access this resource");
+
+
         ObjectMapper objectMapper = new ObjectMapper();
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         objectMapper.writeValue(response.getWriter(), responseMap);

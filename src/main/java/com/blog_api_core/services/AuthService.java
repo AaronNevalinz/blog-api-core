@@ -58,4 +58,6 @@ public class AuthService {
         SecurityContextHolder.getContext().setAuthentication(authentication);
         return jwtUtils.generateTokenFromUser(user.getUsername());
     }
+
+
 }

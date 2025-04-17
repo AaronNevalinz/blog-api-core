@@ -12,10 +12,44 @@ import java.util.List;
 
 @Repository
 public interface PostRepository extends JpaRepository<Post, Long> {
-    @Query(value = "SELECT u.username AS username, p.title AS title, p.content AS content, p.img_url AS postImg, COUNT(l.user_id) AS likeCount FROM post p JOIN app_user u ON p.user_id = u.id LEFT JOIN likes l ON l.post_id = p.id GROUP BY p.id, u.username, p.title, p.content, p.img_url", nativeQuery = true)
+
+
+
+
+//    maps the post to the user who created it
+    @Query(value = "SELECT u.username AS username, p.id as postId, p.title AS title, p.content AS content, p.img_url AS postImg, COUNT(l.user_id) AS likeCount FROM post p JOIN app_user u ON p.user_id = u.id LEFT JOIN likes l ON l.post_id = p.id GROUP BY p.id, u.username, p.title, p.content, p.img_url", nativeQuery = true)
     List<PostSummary> findPostSummaries();
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// maps the post to the user who created it and paginates the results
     @Query(value = "SELECT u.username AS username, p.title AS title, p.content AS content, p.img_url AS postImg, COUNT(l.user_id) AS likeCount FROM post p JOIN app_user u ON p.user_id = u.id LEFT JOIN likes l ON l.post_id = p.id GROUP BY p.id, u.username, p.title, p.content, p.img_url", countQuery = "SELECT COUNT(*) FROM post", nativeQuery = true)
     Page<PostSummary> findPostSummariesWithPagination(Pageable pageable);
+
+
 }
