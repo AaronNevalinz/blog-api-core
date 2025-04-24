@@ -2,6 +2,7 @@ package com.blog_api_core.services;
 
 import com.blog_api_core.models.Comment;
 import com.blog_api_core.models.Post;
+import com.blog_api_core.payload.CommentPayload;
 import com.blog_api_core.repository.CommentRepository;
 import org.springframework.stereotype.Service;
 
@@ -22,7 +23,7 @@ public class CommentService {
         return commentRepository.save(comment);
     }
 
-    public List<Comment> findAllCommentsForPost(Long post_id) {
+    public List<CommentPayload> findAllCommentsForPost(Long post_id) {
         Post post = postService.getPostById(post_id);
         if (post == null) {
             return null;

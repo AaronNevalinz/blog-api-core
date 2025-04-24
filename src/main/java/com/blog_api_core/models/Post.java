@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 
@@ -18,7 +19,8 @@ public class Post {
     @Column(columnDefinition = "TEXT")
     private String content;
     private String imgUrl;
-    @OneToMany(mappedBy = "post")
+    private LocalDateTime createdAt = LocalDateTime.now();
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL)
     @JsonIgnore
     private List<Comment> comments;
     @ManyToOne
@@ -26,10 +28,10 @@ public class Post {
     @JsonIgnore
     private User user;
 
-    @ManyToMany(cascade = CascadeType.ALL)
+    @ManyToMany(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
     @JoinTable(
             name = "post_topics",
-            joinColumns = @JoinColumn(name="post_id"),
+            joinColumns = @JoinColumn(name= "post_id"),
             inverseJoinColumns = @JoinColumn(name = "topic_id")
     )
     private List<Topic> topics;
@@ -110,5 +112,21 @@ public class Post {
 
     public void setLikes(Set<Like> likes) {
         this.likes = likes;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public Set<BookMark> getBookMarks() {
+        return bookMarks;
+    }
+
+    public void setBookMarks(Set<BookMark> bookMarks) {
+        this.bookMarks = bookMarks;
     }
 }

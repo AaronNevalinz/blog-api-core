@@ -2,6 +2,7 @@ package com.blog_api_core.controllers;
 
 import com.blog_api_core.models.Comment;
 import com.blog_api_core.models.User;
+import com.blog_api_core.payload.CommentPayload;
 import com.blog_api_core.repository.UserRepository;
 import com.blog_api_core.services.CommentService;
 import org.springframework.http.ResponseEntity;
@@ -41,7 +42,7 @@ public class CommentController {
     @GetMapping("/post/comments/{post_id}")
     public ResponseEntity<Map<String, Object>> getComments(@PathVariable Long post_id) {
         Map<String, Object> response = new LinkedHashMap<>();
-        List<Comment> comments = commentService.findAllCommentsForPost(post_id);
+        List<CommentPayload> comments = commentService.findAllCommentsForPost(post_id);
 
         response.put("status", true);
         response.put("comments", comments);

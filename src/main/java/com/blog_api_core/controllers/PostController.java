@@ -2,10 +2,15 @@ package com.blog_api_core.controllers;
 
 import com.blog_api_core.exceptions.NotFoundException;
 import com.blog_api_core.models.*;
+import com.blog_api_core.payload.BookMarkPayload;
+import com.blog_api_core.payload.LikesPayload;
 import com.blog_api_core.payload.PostSummary;
+import com.blog_api_core.payload.SinglePost;
 import com.blog_api_core.repository.BookMarkRepository;
 import com.blog_api_core.repository.LikeRepository;
 import com.blog_api_core.repository.UserRepository;
+import com.blog_api_core.services.BookMarkService;
+import com.blog_api_core.services.LikeService;
 import com.blog_api_core.services.PostService;
 import com.blog_api_core.services.TopicService;
 import com.blog_api_core.utils.S3FileStorageUtils;
@@ -29,14 +34,18 @@ public class PostController {
     private final UserRepository userRepository;
     private final LikeRepository likeRepository;
     private final BookMarkRepository bookMarkRepository;
+    private final LikeService likeService;
+    private final BookMarkService bookMarkService;
 
-    public PostController(PostService postService, TopicService topicService, S3FileStorageUtils s3FileStorageUtils, UserRepository userRepository, LikeRepository likeRepository, BookMarkRepository bookMarkRepository) {
+    public PostController(PostService postService, TopicService topicService, S3FileStorageUtils s3FileStorageUtils, UserRepository userRepository, LikeRepository likeRepository, BookMarkRepository bookMarkRepository, LikeService likeService, BookMarkService bookMarkService) {
         this.postService = postService;
         this.topicService = topicService;
         this.s3FileStorageUtils = s3FileStorageUtils;
         this.userRepository = userRepository;
         this.likeRepository = likeRepository;
         this.bookMarkRepository = bookMarkRepository;
+        this.likeService = likeService;
+        this.bookMarkService = bookMarkService;
     }
 
 
@@ -101,8 +110,11 @@ public class PostController {
     @CrossOrigin(origins = "http://localhost:5173")
     @GetMapping("/posts-summary")
     public ResponseEntity<Map<String, Object>> getAllPostsSummary(){
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new NotFoundException("Please Log in"));
         Map<String, Object> response = new LinkedHashMap<>();
-        List<PostSummary> posts = postService.getAllPostSummaries();
+        List<PostSummary> posts = postService.getAllPostSummaries(user.getId());
 
         response.put("status", true);
         response.put("result", posts);
@@ -111,18 +123,26 @@ public class PostController {
     }
 
     @GetMapping("/summaries")
-    public ResponseEntity<org.springframework.data.domain.Page<PostSummary>> getPaginatedPostSummaries(
-            @RequestParam(defaultValue = "1") int page,
+    public ResponseEntity<Map<String, Object>> getPaginatedPostSummaries(
+            @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "5") int size
     ) {
         Page<PostSummary> summaries = postService.getPaginatedPostSummaries(page, size);
-        return ResponseEntity.ok(summaries);
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("status", true);
+        response.put("result", summaries.getContent());
+        response.put("currentPage", summaries.getNumber());
+        response.put("totalItems", summaries.getTotalElements());
+        response.put("totalPages", summaries.getTotalPages());
+        response.put("hasNext", summaries.hasNext());
+
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/post/{post_id}")
     public ResponseEntity<Map<String, Object>> getPostById(@PathVariable Long post_id){
         Map<String, Object> response = new LinkedHashMap<>();
-        Post post = postService.getPostById(post_id);
+        SinglePost post = postService.getSinglePostById(post_id);
 
         if(post == null) {
             throw new NotFoundException("Post not found");
@@ -131,6 +151,26 @@ public class PostController {
         response.put("status", true);
         response.put("result", post);
         return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/delete/{post_id}")
+    public ResponseEntity<Map<String, Object>> deletePost(@PathVariable Long post_id){
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new NotFoundException("Please Log in"));
+
+        Map<String, Object> response = new LinkedHashMap<>();
+        Post post = postService.getPostById(post_id);
+        if(post == null) {
+            throw new NotFoundException("Post not found");
+        } else if(!post.getUser().getId().equals(user.getId())) {
+            throw new NotFoundException("You are not authorized to delete this post");
+        } else{
+            postService.deletePost(post);
+            response.put("status", true);
+            response.put("message", "Post deleted successfully");
+            return ResponseEntity.ok(response);
+        }
     }
 
 
@@ -147,7 +187,7 @@ public class PostController {
         Optional<Like> alreadyLiked = likeRepository.findByUserAndPost(user, post);
         if(alreadyLiked.isPresent()) {
             likeRepository.delete(alreadyLiked.get());
-            response.put("status",false);
+            response.put("status",true);
             response.put("message","unliked");
             return ResponseEntity.ok(response);
         }
@@ -187,15 +227,94 @@ public class PostController {
         return ResponseEntity.ok(response);
     }
 
-//    searching
-//    @PostMapping("search")
-//    public ResponseEntity<Map<String, Object>> searchPosts(@RequestBody String searchParams) {
-//        Map<String, Object> response = new LinkedHashMap<>();
-//        String searchTerm = searchParams.get("searchTerm");
-//        List<Post> posts = postService.searchTopic(searchTerm);
 
-//        response.put("status", true);
-//        response.put("result", posts);
-//        return ResponseEntity.ok(response);
-//    }
+//    get articles by topic
+    @GetMapping("/posts/topic/{topic_id}")
+    public ResponseEntity<Map<String, Object>> getPostsByTopic(@PathVariable Long topic_id){
+        Map<String, Object> response = new LinkedHashMap<>();
+        List<PostSummary> posts = postService.getPostSummariesByTopicId(topic_id);
+
+        if(posts == null) {
+            throw new NotFoundException("Post not found");
+        }
+
+        response.put("status", true);
+        response.put("result", posts);
+        return ResponseEntity.ok(response);
+    }
+// Get posts of currently logged in user
+    @GetMapping("/posts/user")
+    public ResponseEntity<Map<String, Object>> getPostsByUser(){
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByUsername(username).orElseThrow(() -> new NotFoundException("Please Log in"));
+        List<PostSummary> posts = postService.getPostSummariesByUserId(user.getId());
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("status", true);
+        response.put("result", posts);
+        return ResponseEntity.ok(response);
+    }
+
+//    Get posts by userId
+@GetMapping("/posts/user/{username}")
+public ResponseEntity<Map<String, Object>> getPostsByUser(@PathVariable String username){
+    List<PostSummary> posts = postService.getPostsByUsername(username);
+    Map<String, Object> response = new LinkedHashMap<>();
+    response.put("status", true);
+    response.put("result", posts);
+    return ResponseEntity.ok(response);
+}
+@GetMapping("/post/likes/{post_id}")
+public ResponseEntity<Map<String, Object>> getPostLikes(@PathVariable Long post_id){
+    Map<String, Object> response = new LinkedHashMap<>();
+    Post post = postService.getPostById(post_id);
+    if(post == null) {
+        throw new NotFoundException("Post not found");
+    }
+    List<LikesPayload> likes = likeService.getAllLikesOfPost(post_id);
+    response.put("status", true);
+    response.put("result", likes);
+    return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/post/bookmarks/{post_id}")
+    public ResponseEntity<Map<String, Object>> getPostBookMarks(@PathVariable Long post_id){
+        Map<String, Object> response = new LinkedHashMap<>();
+        Post post = postService.getPostById(post_id);
+        if(post == null) {
+            throw new NotFoundException("Post not found");
+        }
+        List<BookMarkPayload> bookMarks = bookMarkService.getAllBookMarksOfPost(post_id);
+        response.put("status", true);
+        response.put("result", bookMarks);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/bookmarks/{user_id}")
+    public ResponseEntity<Map<String, Object>> getPostByBookMarks(@PathVariable Long user_id){
+        Map<String, Object> response = new LinkedHashMap<>();
+        List<PostSummary> bookMarks = postService.getPostByBookMarksId(user_id);
+        response.put("status", true);
+        response.put("result", bookMarks);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<Map<String, Object>> searchPost(@RequestParam String searchTerm){
+        Map<String, Object> response = new LinkedHashMap<>();
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new NotFoundException("Please Log in"));
+        List<PostSummary> posts = postService.getAllPostSummaries(user.getId());
+        List<PostSummary> filteredPosts = new ArrayList<>();
+
+        for(PostSummary post : posts) {
+            if(post.getTitle().toLowerCase().contains(searchTerm.toLowerCase())) {
+                filteredPosts.add(post);
+            }
+        }
+
+        response.put("status", true);
+        response.put("result", filteredPosts);
+        return ResponseEntity.ok(response);
+    }
 }

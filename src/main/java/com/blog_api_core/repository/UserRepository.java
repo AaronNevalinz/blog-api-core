@@ -20,5 +20,4 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
 //  Get all the in-active users
     @Query("SELECT u FROM User u WHERE u.is_deleted = true")
     List<User> findAllInActive();
-//    searching
 }

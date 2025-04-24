@@ -4,6 +4,7 @@ import com.blog_api_core.exceptions.NotFoundException;
 import com.blog_api_core.models.Post;
 import com.blog_api_core.models.Profile;
 import com.blog_api_core.models.User;
+import com.blog_api_core.payload.ProfileSummary;
 import com.blog_api_core.repository.UserRepository;
 import com.blog_api_core.services.ProfileService;
 import com.blog_api_core.utils.S3FileStorageUtils;
@@ -41,6 +42,7 @@ public class ProfileController {
         Profile userProfile = new Profile();
         userProfile.setUser(user);
         userProfile.setBio(profile.getBio());
+        userProfile.setDisplayName(profile.getDisplayName());
         //        upload the post image too
         if(file != null && !file.isEmpty()) {
             String filePath = s3FileStorageUtils.uploadProfilePic(file);
@@ -74,6 +76,33 @@ public class ProfileController {
             response.put("message", "User not found");
         }
 
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/get-user/profile/")
+    public ResponseEntity<Map<String, Object>> getLoggedInUserProfile() {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        Optional<User> user = userRepository.findByUsername(username);
+        if (user.isEmpty()) {
+            throw new UsernameNotFoundException("User not found");
+        }
+        ProfileSummary profileSummary = profileService.getUserProfile(user.get().getId());
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("status", true);
+        response.put("result", profileSummary);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/get-user/profile/{username}")
+    public ResponseEntity<Map<String, Object>> getUserProfile(@PathVariable String username) {
+        Optional<User> user = userRepository.findByUsername(username);
+        if (user.isEmpty()) {
+            throw new UsernameNotFoundException("User not found");
+        }
+        ProfileSummary profileSummary = profileService.getUserProfile(user.get().getId());
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("status", true);
+        response.put("result", profileSummary);
         return ResponseEntity.ok(response);
     }
 }
