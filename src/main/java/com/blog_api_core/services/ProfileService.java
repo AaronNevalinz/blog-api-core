@@ -2,6 +2,7 @@ package com.blog_api_core.services;
 
 import com.blog_api_core.models.Profile;
 import com.blog_api_core.models.User;
+import com.blog_api_core.payload.ProfileSummary;
 import com.blog_api_core.payload.UserSpecification;
 import com.blog_api_core.repository.ProfileRepository;
 import com.blog_api_core.repository.UserRepository;
@@ -28,8 +29,11 @@ public class ProfileService {
         return profileRepository.save(profile);
     }
 
-    public List<User> searchUser(String username){
-        Specification<User> spec = Specification.where(UserSpecification.getUserByUsername(username));
-        return userRepository.findAll(spec);
+    public List<ProfileSummary> searchUser(String searchTerm){
+        return profileRepository.getAllMatchedResults(searchTerm);
+    }
+
+    public ProfileSummary getUserProfile(Long userId) {
+        return profileRepository.findUserProfile(userId);
     }
 }

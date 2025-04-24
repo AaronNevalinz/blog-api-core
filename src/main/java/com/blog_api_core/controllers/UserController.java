@@ -2,14 +2,12 @@ package com.blog_api_core.controllers;
 
 import com.blog_api_core.models.Profile;
 import com.blog_api_core.models.User;
+import com.blog_api_core.payload.ProfileSummary;
 import com.blog_api_core.repository.UserRepository;
 import com.blog_api_core.services.ProfileService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 
@@ -84,7 +82,7 @@ public class UserController {
     @GetMapping("/search")
     public ResponseEntity<Map<String, Object>> searchUser(@RequestParam(required = false) String searchTerm) {
         Map<String, Object> response = new LinkedHashMap<>();
-        List<User> users = profileService.searchUser(searchTerm);
+        List<ProfileSummary> users = profileService.searchUser(searchTerm);
         response.put("status", "success");
         response.put("result", users);
 
