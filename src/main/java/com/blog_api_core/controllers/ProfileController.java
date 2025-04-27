@@ -18,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 @RestController
@@ -103,6 +104,32 @@ public class ProfileController {
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("status", true);
         response.put("result", profileSummary);
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping(value = "/update-profile/{profileId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Map<String, Object>> updateProfile(@PathVariable Long profileId, @RequestPart Profile profile, @RequestPart(value = "file", required = false)  MultipartFile file) {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByUsername(username).orElseThrow(() -> new NotFoundException("User not found"));
+        Profile existingProfile = profileService.getProfileById(profileId);
+        Map<String, Object> response = new LinkedHashMap<>();
+
+        if(file != null && !file.isEmpty()) {
+            String filePath = s3FileStorageUtils.uploadProfilePic(file);
+            existingProfile.setImgUrl(filePath);
+        }
+
+
+        if(!Objects.equals(user.getId(), existingProfile.getUser().getId())){
+            response.put("status", false);
+            response.put("message", "You are not authorized to update this profile");
+        } else {
+            if(profile.getBio()!= null) existingProfile.setBio(profile.getBio());
+            if(profile.getDisplayName()!= null) existingProfile.setDisplayName(profile.getDisplayName());
+            Profile updatedProfile = profileService.saveProfile(existingProfile);
+            response.put("status", true);
+            response.put("result", updatedProfile);
+        }
         return ResponseEntity.ok(response);
     }
 }

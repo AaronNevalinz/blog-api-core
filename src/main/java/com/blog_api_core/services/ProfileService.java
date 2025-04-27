@@ -36,4 +36,8 @@ public class ProfileService {
     public ProfileSummary getUserProfile(Long userId) {
         return profileRepository.findUserProfile(userId);
     }
+
+    public Profile getProfileById(Long id) {
+        return profileRepository.findById(id).orElse(null);
+    }
 }

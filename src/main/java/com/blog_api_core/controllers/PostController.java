@@ -317,4 +317,32 @@ public ResponseEntity<Map<String, Object>> getPostLikes(@PathVariable Long post_
         response.put("result", filteredPosts);
         return ResponseEntity.ok(response);
     }
+
+
+
+    @PutMapping(value = "/update-post/{postId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Map<String, Object>> updatePost(@PathVariable Long postId, @RequestPart Post post, @RequestPart(value = "file", required = false)  MultipartFile file) {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByUsername(username).orElseThrow(() -> new NotFoundException("User not found"));
+        Post existingPost = postService.getPostById(postId);
+        Map<String, Object> response = new LinkedHashMap<>();
+
+        if(file != null && !file.isEmpty()) {
+            String filePath = s3FileStorageUtils.uploadProfilePic(file);
+            existingPost.setImgUrl(filePath);
+        }
+
+
+        if(!Objects.equals(user.getId(), existingPost.getUser().getId())){
+            response.put("status", false);
+            response.put("message", "You are not authorized to update this profile");
+        } else {
+            if(post.getTitle()!= null) existingPost.setTitle(post.getTitle());
+            if(post.getContent() != null) existingPost.setContent(post.getContent());
+            Post updatedPost = postService.savePost(user, existingPost);
+            response.put("status", true);
+            response.put("result", "Post Updated successfully");
+        }
+        return ResponseEntity.ok(response);
+    }
 }
