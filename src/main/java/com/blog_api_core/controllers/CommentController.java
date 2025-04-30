@@ -15,7 +15,7 @@ import java.util.*;
 
 @Controller
 @CrossOrigin
-@RequestMapping("blog")
+@RequestMapping("/v1/blog")
 public class CommentController {
     private final CommentService commentService;
     private final UserRepository userRepository;
@@ -23,8 +23,19 @@ public class CommentController {
         this.commentService = commentService;
         this.userRepository = userRepository;
     }
-
-    @PostMapping("/add-comment/{post_id}")
+    /**
+     * Endpoint for adding a comment to a post.
+     *
+     * This method allows a user to add a comment on a specific post by providing the post ID and comment content.
+     * It retrieves the currently logged-in user, associates the comment with that user, and saves it.
+     *
+     * @param post_id The ID of the post to which the comment will be added
+     * @param comment The comment object containing the content to be posted
+     * @return A ResponseEntity containing the status of the operation and the saved comment data
+     *
+     * @throws NotFoundException if the user is not logged in or the post does not exist
+     */
+    @PostMapping("/comments/{post_id}")
     public ResponseEntity<Map<String, Object>> addComment(@PathVariable Long post_id, @RequestBody Comment comment) {
         // get the currently logged-in user
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -38,8 +49,18 @@ public class CommentController {
         response.put("comment", savedComment);
         return ResponseEntity.ok(response);
     }
-
-    @GetMapping("/post/comments/{post_id}")
+    /**
+     * Endpoint for retrieving comments for a specific post.
+     *
+     * This method retrieves all the comments associated with a particular post, based on the provided post ID.
+     * It returns the list of comments in the response, along with the status of the operation.
+     *
+     * @param post_id The ID of the post whose comments are to be fetched
+     * @return A ResponseEntity containing the status of the operation and the list of comments for the post
+     *
+     * @throws NotFoundException if the post does not exist or if no comments are found for the given post
+     */
+    @GetMapping("/posts/comments/{post_id}")
     public ResponseEntity<Map<String, Object>> getComments(@PathVariable Long post_id) {
         Map<String, Object> response = new LinkedHashMap<>();
         List<CommentPayload> comments = commentService.findAllCommentsForPost(post_id);

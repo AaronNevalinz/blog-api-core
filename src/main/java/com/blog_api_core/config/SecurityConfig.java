@@ -52,7 +52,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(request ->
                         request
-                                .requestMatchers("/api/auth/register", "/api/auth/login", "/blog/getUser").permitAll()
+                                .requestMatchers("/v1/blog/auth/register", "/v1/blog/auth/login").permitAll()
                                 .anyRequest().authenticated()
                 );
 

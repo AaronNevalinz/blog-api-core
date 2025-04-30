@@ -12,7 +12,7 @@ import java.util.*;
 
 @RestController
 @CrossOrigin
-@RequestMapping("api/auth")
+@RequestMapping("/v1/blog/auth")
 public class AuthController {
     private final AuthService authService;
     private final UserRepository userRepository;
@@ -46,6 +46,4 @@ public class AuthController {
         response.put("token", token);
         return ResponseEntity.ok(response);
     }
-
-
 }

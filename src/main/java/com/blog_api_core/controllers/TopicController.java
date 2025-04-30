@@ -15,13 +15,13 @@ import java.util.Map;
 
 @RestController
 @CrossOrigin
-@RequestMapping("/topics")
+@RequestMapping("/v1/blog")
 public class TopicController {
     private final TopicService topicService;
     public TopicController(TopicService topicService) {
         this.topicService = topicService;
     }
-    @GetMapping()
+    @GetMapping("/topics")
     public ResponseEntity<Map<String, Object>> getTopics() {
         List<Topic> topics = topicService.getAllTopics();
 
